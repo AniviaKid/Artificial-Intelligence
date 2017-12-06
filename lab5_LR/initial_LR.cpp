@@ -57,7 +57,7 @@ void HandleData(const string data_name)
 		str.clear();
 		for (int j = 0; j < data[i].size(); j++)
 		{
-			if (data[i][j] != ',')//当前字符不是逗号
+			if (data[i][j] != ' ')//当前字符不是逗号
 			{
 				str += data[i][j];
 			}
@@ -69,8 +69,9 @@ void HandleData(const string data_name)
 		}
 		if (data_name == "train.csv") {
 			if (str.size() != 0) tmp.label = atof(str.c_str());//该行数据处理结束
-			if (num_train[i]) train.push_back(tmp);
-			else vail.push_back(tmp);
+			/*if (num_train[i]) train.push_back(tmp);
+			else vail.push_back(tmp);*/
+			train.push_back(tmp);
 		}
 		else if (data_name == "test.csv") {
 			tmp.label = 999;
@@ -80,7 +81,7 @@ void HandleData(const string data_name)
 }
 void Init()
 {
-	for (int i = 0; i < train[0].data.size(); i++) w0.push_back(1);
+	for (int i = 0; i < train[0].data.size(); i++) w0.push_back(0);
 }
 double calc(const vector<double> v1, const vector<double> v2)
 {
@@ -94,11 +95,12 @@ void Evaluation_of_w0(vector<Data> v) {
 	for (int i = 0; i < v.size(); i++) {
 		if (calc(w0, v[i].data) > 0) v[i].label_from_predict = 1;
 		else v[i].label_from_predict = 0;
-		out<< v[i].label_from_predict << endl;
+		cout<< "第" << i << "个数据预测为 ";
+		cout<< v[i].label_from_predict << endl;
 		if(v[i].label_from_predict == 1) T++;
 		else F++;
 	}
-	cout<<"T:"<<T<<"   F:"<<F<<endl;
+	//cout<<"T:"<<T<<"   F:"<<F<<endl;
 }
 void Get_w(int num_iterations,double step) {
 	for (int i = 0; i < num_iterations; i++) { //迭代次数
@@ -113,10 +115,10 @@ void Get_w(int num_iterations,double step) {
 			for (int k = 0; k < train.size(); k++) { //在这一维上遍历训练集
 				grad += ((1.0 / (1 + pow(e, -s[k]))) - train[k].label)*train[k].data[j];
 			}
-			gradient.push_back(grad / train.size());
+			gradient.push_back(grad);
 		}
 
-		bool flag = true;
+		/*bool flag = true;
 		for (int j = 0; j < gradient.size(); j++) { //确认梯度是否为0
 			if (gradient[j] >=1e-5) {
 				flag = false;
@@ -126,22 +128,35 @@ void Get_w(int num_iterations,double step) {
 		if (flag) { ////梯度为0则跳出
 			cout << "迭代次数" << i + 1 << "已收敛" << endl;
 			break;
-		}
+		}*/
 
 		for (int j = 0; j < w0.size(); j++) { //更新w0
 			w0[j] -= (gradient[j] * step);
 		}
 	}
 }
+void print_dataset(vector<Data> v,string name) {
+	ofstream out;
+	out.open(name.c_str());
+	for (int i = 0; i < v.size(); i++) {
+		for (int j = 0; j < v[i].data.size(); j++) {
+			out << v[i].data[j] << " ";
+		}
+		out << v[i].label << endl;
+	}
+	out.close();
+}
 int main()
 {
 	srand(time(NULL));
-	out.open("15352427_zhangzihao.txt");
+	//out.open("15352427_zhangzihao.txt");
 	HandleData("train.csv");
 	HandleData("test.csv");
 	Init();
-	Get_w(1000, 0.1);
+	Get_w(1, 1);
+	for(int i=0;i<w0.size();i++) cout<<w0[i]<<"　";
+	cout<<endl;
 	Evaluation_of_w0(test);
-	system("pause");
+	//system("pause");
 }
 
